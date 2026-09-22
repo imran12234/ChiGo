@@ -86,3 +86,34 @@ ChiGo is containerized with Docker and deployed to Render using:
 - WhiteNoise for static file serving  
 
 ---
+
+## Google Places and itinerary maps
+
+Place enrichment uses **Places API (New)** from the Django server (`PLACES_API_KEY`).
+The itinerary builder and summary use **Maps JavaScript API** to display those
+coordinates, with markers and a separate connecting line for each day.
+
+Set these environment variables locally in the ignored `.env`, and separately
+in your deployment environment:
+
+```dotenv
+PLACES_API_KEY=your_server_places_key
+GOOGLE_MAPS_BROWSER_KEY=your_website_restricted_maps_key
+GOOGLE_MAPS_MAP_ID=your_map_id
+```
+
+Enable Places API (New) and Maps JavaScript API in the owning Google Cloud
+projects, with active billing. Use a separate browser key restricted to your
+website URLs and Maps JavaScript API. The server Places key is never used as a
+browser-key fallback. `DEMO_MAP_ID` is the development default; configure your own
+map ID for deployment. Without a browser key, the page provides a Google Maps
+link; failed photo requests display “Photo unavailable.”
+
+Existing itineraries retain their saved coordinates and photo references;
+changing keys does not re-enrich them. Generate a new itinerary after fixing
+Places access. Google HTTP 403 responses still require resolving account/API/key
+permissions; changing the map renderer does not remove that requirement.
+
+The evidence under `metrics/` measures the **original application version** before
+these integration changes. Its original test counts and timings must not be
+presented as measurements of this updated code.

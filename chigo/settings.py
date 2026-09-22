@@ -71,6 +71,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'planner.context_processors.google_maps',
             ],
         },
     },
@@ -152,3 +153,9 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'csc394901@gmail.com'
 EMAIL_HOST_PASSWORD = 'ylkc eqlv pkyu jrcz'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Separate public, website-restricted key for Maps JavaScript API.
+GOOGLE_MAPS_BROWSER_KEY = os.getenv("GOOGLE_MAPS_BROWSER_KEY", "")
+GOOGLE_MAPS_MAP_ID = os.getenv("GOOGLE_MAPS_MAP_ID", "DEMO_MAP_ID")
+# Allow origin-based website restrictions on the public Google Maps browser key.
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'

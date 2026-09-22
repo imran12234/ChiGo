@@ -27,3 +27,5 @@ staticfiles/
 /data/
 **/__pycache__/
 .DS_Store
+# Safe credential template only; real .env files stay ignored.
+!/.env.example

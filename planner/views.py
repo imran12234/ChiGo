@@ -13,7 +13,11 @@ from datetime import time as dt_time
 from decimal import Decimal
 from django.http import JsonResponse, HttpResponse
 import requests
+import logging
+import re
 import os
+
+logger = logging.getLogger(__name__)
 from .forms import FullSurveyForm
 import json
 from django.db.models import Prefetch
@@ -442,8 +446,10 @@ def lookup_place_details(name, api_key):
                     "longitude": place.get("location", {}).get("longitude", 0),
                     "address": place.get("formattedAddress", "")
                 }
-    except Exception as e:
-        print(f"[ERROR] Places lookup failed for '{name}': {e}")
+        else:
+            logger.warning("Places lookup failed with HTTP %s", response.status_code)
+    except (requests.RequestException, ValueError, KeyError, TypeError) as exc:
+        logger.warning("Places lookup failed (%s)", type(exc).__name__)
     return {"photo_name": "", "latitude": 0, "longitude": 0, "address": ""}
 
 
@@ -683,10 +689,12 @@ def photo_proxy(request):
     """Proxy photo requests to Google Places API to avoid CORS and authentication issues"""
     photo_name = request.GET.get('photo_name', '')
 
-    if not photo_name:
+    if not re.fullmatch(r"places/[A-Za-z0-9_-]+/photos/[A-Za-z0-9_-]+", photo_name):
         return HttpResponse(status=400)
 
     api_key = os.getenv("PLACES_API_KEY")
+    if not api_key:
+        return HttpResponse(status=503)
     url = f"https://places.googleapis.com/v1/{photo_name}/media?maxHeightPx=400&key={api_key}"
 
     try:
@@ -715,9 +723,9 @@ def photo_proxy(request):
             print(f"[ERROR] Failed to fetch photo (stale ref): {response.status_code}")
             return HttpResponse(status=404)
         else:
-            print(f"[ERROR] Failed to fetch photo: {response.status_code} - {response.text}")
+            logger.warning("Places photo request failed with HTTP %s", response.status_code)
             return HttpResponse(status=response.status_code)
     except Exception as e:
-        print(f"[ERROR] Photo proxy exception: {str(e)}")
+        logger.warning("Places photo request failed (%s)", type(e).__name__)
         return HttpResponse(status=500)
 

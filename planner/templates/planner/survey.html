@@ -1,133 +1,63 @@
 {% extends "planner/base.html" %}
-{% block title %}Trip Survey{% endblock %}
-
+{% block title %}Plan your Chicago stay{% endblock %}
+{% block nav_survey %}aria-current="page"{% endblock %}
 {% block content %}
-<div class="container-lg d-flex flex-column" style="min-height: calc(100vh - 120px); padding-top: 1.5rem; padding-bottom: 1.5rem;">
-    <form method="post" id="survey-form" novalidate class="flex-grow-1 d-flex flex-column">
-        {% csrf_token %}
-        <div class="card chigo-card overflow-hidden border-0 shadow flex-grow-1 d-flex flex-column">
-
-            <!-- Card Header -->
-            <div class="px-4 py-4" style="background: linear-gradient(135deg, #0a4bb5 0%, #0d6efd 100%);">
-                <h4 class="text-white fw-bold mb-0"><i class="bi bi-map me-2"></i>Plan Your Trip</h4>
-                <p class="text-white opacity-75 small mb-0">Tell us about your ideal Chicago adventure</p>
-            </div>
-
-            <div class="px-4 py-4 flex-grow-1 d-flex flex-column">
-
-                <!-- Section: Trip Basics -->
-                <p class="text-uppercase text-muted small fw-semibold mb-2" style="letter-spacing:.08em;"><i class="bi bi-suitcase me-1"></i>Trip Basics</p>
-                <div class="row g-3 mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold mb-1">Trip Title</label>
-                        <input type="text" class="form-control" name="trip_title" placeholder="My Chicago Adventure" required value="{{ form.trip_title.value|default:'' }}">
-                        {% if form.trip_title.errors %}<div class="text-danger small">{{ form.trip_title.errors.0 }}</div>{% endif %}
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold mb-1">Days</label>
-                        <input type="number" class="form-control" name="stay_length" min="1" placeholder="3" value="{{ form.stay_length.value|default:'' }}">
-                        {% if form.stay_length.errors %}<div class="text-danger small">{{ form.stay_length.errors.0 }}</div>{% endif %}
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold mb-1">Staying In</label>
-                        <select class="form-select" name="stay_location">
+<div class="survey-cards-shell">
+<header class="survey-cards-intro"><div><p class="eyebrow">THE CHICAGO EDIT · PLAN YOUR STAY</p><h1>Plan your Chicago stay.<br><em>Make it your own.</em></h1></div><p class="lede">Choose what suits you.<br>We’ll use your preferences to build your itinerary.</p></header>
+<p class="form-instructions" id="survey-instructions">All fields are required except “Anything to avoid”.</p><form method="post" id="survey-form" aria-describedby="survey-instructions" novalidate>{% csrf_token %}
+<div class="survey-errors" id="survey-errors" tabindex="-1" aria-labelledby="survey-error-title" hidden><h2 id="survey-error-title">Check your answers</h2><ul></ul></div><div class="survey-cards-grid">
+<fieldset class="preference-card"><legend><span class="section-number" aria-hidden="true">01</span><span>Your stay</span></legend><p class="card-description">Set the scene for your Chicago escape.</p><div class="preference-fields"><div class="preference-field"><label class="form-label fw-semibold mb-1" for="id_trip_title">Trip name</label><p class="field-hint" id="hint-trip_title">Give this trip a name you’ll recognize.</p>
+                        <input type="text" class="form-control" id="id_trip_title" aria-describedby="hint-trip_title error-trip_title" aria-required="true" name="trip_title" placeholder="e.g. A weekend in Chicago" required value="{{ form.trip_title.value|default:'' }}">
+                        <div class="field-error" id="error-trip_title">{{ form.trip_title.errors.0|default:'' }}</div></div><div class="preference-field"><label class="form-label fw-semibold mb-1" for="id_stay_length">Number of days</label><p class="field-hint" id="hint-stay_length">Include your arrival and departure days.</p>
+                        <input type="number" class="form-control" id="id_stay_length" aria-describedby="hint-stay_length error-stay_length" aria-required="true" name="stay_length" min="1" step="1" inputmode="numeric" placeholder="3" value="{{ form.stay_length.value|default:'' }}">
+                        <div class="field-error" id="error-stay_length">{{ form.stay_length.errors.0|default:'' }}</div></div><div class="preference-field"><label class="form-label fw-semibold mb-1" for="id_stay_location">Where are you staying?</label><p class="field-hint" id="hint-stay_location">Choose your Chicago neighborhood.</p>
+                        <select class="form-select" id="id_stay_location" aria-describedby="hint-stay_location error-stay_location" aria-required="true" name="stay_location">
                             {% for choice in form.stay_location.field.choices %}
                             <option value="{{ choice.0 }}" {% if form.stay_location.value == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
                             {% endfor %}
                         </select>
-                        {% if form.stay_location.errors %}<div class="text-danger small">{{ form.stay_location.errors.0 }}</div>{% endif %}
-                    </div>
-                </div>
-
-                <hr class="my-3">
-
-                <!-- Section: Preferences -->
-                <p class="text-uppercase text-muted small fw-semibold mb-2" style="letter-spacing:.08em;"><i class="bi bi-heart me-1"></i>Preferences</p>
-                <div class="row g-3 mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold mb-1">Cuisine</label>
-                        <select class="form-select" name="preferred_cuisine">
+                        <div class="field-error" id="error-stay_location">{{ form.stay_location.errors.0|default:'' }}</div></div></div></fieldset><fieldset class="preference-card"><legend><span class="section-number" aria-hidden="true">02</span><span>Your interests</span></legend><p class="card-description">The food, company, and energy you enjoy.</p><div class="preference-fields"><div class="preference-field"><label class="form-label fw-semibold mb-1" for="id_preferred_cuisine">Preferred cuisine</label><p class="field-hint" id="hint-preferred_cuisine">Choose one cuisine you’d like to explore.</p>
+                        <select class="form-select" id="id_preferred_cuisine" aria-describedby="hint-preferred_cuisine error-preferred_cuisine" aria-required="true" name="preferred_cuisine">
                             {% for choice in form.preferred_cuisine.field.choices %}
                             <option value="{{ choice.0 }}" {% if form.preferred_cuisine.value == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
                             {% endfor %}
                         </select>
-                        {% if form.preferred_cuisine.errors %}<div class="text-danger small">{{ form.preferred_cuisine.errors.0 }}</div>{% endif %}
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold mb-1">Activity Level</label>
-                        <select class="form-select" name="activity_level">
-                            {% for choice in form.activity_level.field.choices %}
-                            <option value="{{ choice.0 }}" {% if form.activity_level.value == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
-                            {% endfor %}
-                        </select>
-                        {% if form.activity_level.errors %}<div class="text-danger small">{{ form.activity_level.errors.0 }}</div>{% endif %}
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold mb-1">Travelling With</label>
-                        <select class="form-select" name="social_context">
+                        <div class="field-error" id="error-preferred_cuisine">{{ form.preferred_cuisine.errors.0|default:'' }}</div></div><div class="preference-field"><label class="form-label fw-semibold mb-1" for="id_social_context">Who’s coming along?</label><p class="field-hint" id="hint-social_context">Choose the group that best fits your trip.</p>
+                        <select class="form-select" id="id_social_context" aria-describedby="hint-social_context error-social_context" aria-required="true" name="social_context">
                             {% for choice in form.social_context.field.choices %}
                             <option value="{{ choice.0 }}" {% if form.social_context.value == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
                             {% endfor %}
                         </select>
-                        {% if form.social_context.errors %}<div class="text-danger small">{{ form.social_context.errors.0 }}</div>{% endif %}
-                    </div>
-                </div>
-
-                <hr class="my-3">
-
-                <!-- Section: Logistics -->
-                <p class="text-uppercase text-muted small fw-semibold mb-2" style="letter-spacing:.08em;"><i class="bi bi-sliders me-1"></i>Logistics</p>
-                <div class="row g-3 mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold mb-1">Daily Activity Time</label>
+                        <div class="field-error" id="error-social_context">{{ form.social_context.errors.0|default:'' }}</div></div><div class="preference-field"><label class="form-label fw-semibold mb-1" for="id_activity_level">Activity level</label><p class="field-hint" id="hint-activity_level">Choose how active you want your days to be.</p>
+                        <select class="form-select" id="id_activity_level" aria-describedby="hint-activity_level error-activity_level" aria-required="true" name="activity_level">
+                            {% for choice in form.activity_level.field.choices %}
+                            <option value="{{ choice.0 }}" {% if form.activity_level.value == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="field-error" id="error-activity_level">{{ form.activity_level.errors.0|default:'' }}</div></div></div></fieldset><fieldset class="preference-card"><legend><span class="section-number" aria-hidden="true">03</span><span>Your pace & budget</span></legend><p class="card-description">A few boundaries for a better day.</p><div class="preference-fields"><div class="preference-field"><label class="form-label fw-semibold mb-1" for="id_activity_duration_hours">Activity time per day (hours)</label><p class="field-hint" id="hint-activity_duration_hours">Enter a whole number from 1 to 24.</p>
                         <div class="input-group">
-                            <input type="number" class="form-control" name="activity_duration_hours" min="1" placeholder="4" value="{{ form.activity_duration_hours.value|default:'' }}">
+                            <input type="number" class="form-control" id="id_activity_duration_hours" aria-describedby="hint-activity_duration_hours error-activity_duration_hours" aria-required="true" name="activity_duration_hours" min="1" max="24" step="1" inputmode="numeric" placeholder="4" value="{{ form.activity_duration_hours.value|default:'' }}">
                             <span class="input-group-text">hrs</span>
                         </div>
-                        {% if form.activity_duration_hours.errors %}<div class="text-danger small">{{ form.activity_duration_hours.errors.0 }}</div>{% endif %}
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold mb-1">Trip Budget</label>
+                        <div class="field-error" id="error-activity_duration_hours">{{ form.activity_duration_hours.errors.0|default:'' }}</div></div><div class="preference-field"><label class="form-label fw-semibold mb-1" for="id_budget">Total trip budget (USD)</label><p class="field-hint" id="hint-budget">Your budget for the whole trip, in US dollars.</p>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" name="budget" min="0" step="0.01" placeholder="500.00" value="{{ form.budget.value|default:'' }}">
+                            <input type="number" class="form-control" id="id_budget" aria-describedby="hint-budget error-budget" aria-required="true" name="budget" inputmode="decimal" min="0" step="0.01" placeholder="500.00" value="{{ form.budget.value|default:'' }}">
                         </div>
-                        {% if form.budget.errors %}<div class="text-danger small">{{ form.budget.errors.0 }}</div>{% endif %}
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold mb-1">Search Radius</label>
+                        <div class="field-error" id="error-budget">{{ form.budget.errors.0|default:'' }}</div></div><div class="preference-field"><label class="form-label fw-semibold mb-1" for="id_radius">Distance from your stay (miles)</label><p class="field-hint" id="hint-radius">How far you’re willing to explore from your stay.</p>
                         <div class="input-group">
-                            <input type="number" class="form-control" name="radius" min="1" placeholder="5" value="{{ form.radius.value|default:'' }}">
+                            <input type="number" class="form-control" id="id_radius" aria-describedby="hint-radius error-radius" aria-required="true" name="radius" min="1" step="1" inputmode="numeric" placeholder="5" value="{{ form.radius.value|default:'' }}">
                             <span class="input-group-text">mi</span>
                         </div>
-                        {% if form.radius.errors %}<div class="text-danger small">{{ form.radius.errors.0 }}</div>{% endif %}
-                    </div>
-                </div>
-
-                <div class="flex-grow-1 d-flex flex-column mb-3">
-                    <label class="form-label fw-semibold mb-1">
+                        <div class="field-error" id="error-radius">{{ form.radius.errors.0|default:'' }}</div></div></div></fieldset></div><div class="survey-finish"><div class="avoid-field"><label class="form-label fw-semibold mb-1" for="id_dislikes">
                         <i class="bi bi-slash-circle me-1 text-muted"></i>Anything to avoid? <span class="text-muted fw-normal">(optional)</span>
                     </label>
-                    <textarea class="form-control flex-grow-1" name="dislikes" placeholder="e.g., long walks, spicy food, crowded places" style="min-height: 80px;">{{ form.dislikes.value|default:'' }}</textarea>
-                    {% if form.dislikes.errors %}<div class="text-danger small">{{ form.dislikes.errors.0 }}</div>{% endif %}
-                </div>
-
-                <!-- Submit -->
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary fw-semibold py-2">
-                        <i class="bi bi-stars me-2"></i>Generate My Itinerary
-                    </button>
-                </div>
-
-            </div>
-        </div>
-    </form>
-</div>
-
+                    <textarea class="form-control flex-grow-1" id="id_dislikes" name="dislikes" placeholder="e.g., long walks, spicy food, crowded places" style="min-height: 80px;">{{ form.dislikes.value|default:'' }}</textarea>
+                    {% if form.dislikes.errors %}<div class="text-danger small">{{ form.dislikes.errors.0 }}</div>{% endif %}</div><div class="survey-submit"><p>Your preferences, brought together<br>in one personal Chicago itinerary.</p><button type="submit" class="btn btn-primary">Create my itinerary <span aria-hidden="true">↗</span></button></div></div></form></div>
 <!-- Loading Overlay -->
 <div id="loading-screen" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(255,255,255,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; font-size: 2.5rem;">
     <div class="emoji-bounce" id="emoji-click-area">🌆 <span id="middle-emoji">🍽️</span> ⏳</div>
-    <div id="loading-text" style="font-size: 1.25rem; margin-top: 1rem;">Planning your perfect trip...</div>
+    <div role="status" aria-live="polite" id="loading-text" style="font-size: 1.25rem; margin-top: 1rem;">Planning your perfect trip...</div>
 </div>
 
 <style>
@@ -169,75 +99,66 @@
             });
         });
 
-        // Validation helpers
-        function setError(el, msg) {
-            el.classList.add("is-invalid");
-            let fb = el.parentElement.querySelector(".invalid-feedback");
-            if (!fb) {
-                fb = document.createElement("div");
-                fb.className = "invalid-feedback";
-                el.parentElement.appendChild(fb);
+        const summary = document.getElementById('survey-errors');
+        const controls = [...form.querySelectorAll('[aria-required="true"]')];
+        let attempted = false;
+        function errorFor(el) {
+            const value = el.value.trim();
+            const label = el.labels[0].textContent.trim();
+            if (!value) return (el.tagName === 'SELECT' ? 'Choose an option for ' : 'Enter ') + label.toLowerCase() + '.';
+            if (el.type === 'number') {
+                const n = Number(value);
+                if (!Number.isFinite(n) || n < Number(el.min)) return label + ' must be ' + el.min + ' or more.';
+                if (el.max && n > Number(el.max)) return label + ' must be ' + el.max + ' or less.';
+                if (el.step === '1' && !Number.isInteger(n)) return 'Enter a whole number for ' + label.toLowerCase() + '.';
+                if (el.validity.stepMismatch) return 'Enter a budget with no more than two decimal places.';
             }
-            fb.textContent = msg;
+            return '';
         }
-
-        function clearError(el) {
-            el.classList.remove("is-invalid");
-            const fb = el.parentElement.querySelector(".invalid-feedback");
-            if (fb) fb.textContent = "";
-        }
-
-        function validateForm() {
-            let valid = true;
-            let firstInvalid = null;
-
-            const required = [
-                { el: document.querySelector('[name="trip_title"]'),             msg: "Please enter a trip title." },
-                { el: document.querySelector('[name="stay_length"]'),             msg: "Please enter the number of days (at least 1).", min: 1 },
-                { el: document.querySelector('[name="stay_location"]'),           msg: "Please select a neighborhood." },
-                { el: document.querySelector('[name="preferred_cuisine"]'),       msg: "Please select a cuisine." },
-                { el: document.querySelector('[name="activity_level"]'),          msg: "Please select an activity level." },
-                { el: document.querySelector('[name="social_context"]'),          msg: "Please select who you're travelling with." },
-                { el: document.querySelector('[name="activity_duration_hours"]'), msg: "Please enter daily activity hours (at least 1).", min: 1 },
-                { el: document.querySelector('[name="budget"]'),                  msg: "Please enter a budget.", min: 0 },
-                { el: document.querySelector('[name="radius"]'),                  msg: "Please enter a search radius (at least 1).", min: 1 },
-            ];
-
-            required.forEach(({ el, msg, min }) => {
-                if (!el) return;
-                clearError(el);
-                const val = el.value.trim();
-                let invalid = false;
-
-                if (!val) {
-                    invalid = true;
-                } else if (min !== undefined && parseFloat(val) < min) {
-                    invalid = true;
-                }
-
-                if (invalid) {
-                    setError(el, msg);
-                    valid = false;
-                    if (!firstInvalid) firstInvalid = el;
+        function updateErrors() {
+            const list = summary.querySelector('ul');
+            list.replaceChildren();
+            controls.forEach(el => {
+                const message = errorFor(el);
+                el.setAttribute('aria-invalid', String(Boolean(message)));
+                el.classList.toggle('is-invalid', Boolean(message));
+                document.getElementById('error-' + el.name).textContent = message;
+                if (message) {
+                    const li = document.createElement('li');
+                    const link = document.createElement('a');
+                    link.href = '#' + el.id;
+                    link.textContent = message;
+                    link.addEventListener('click', event => { event.preventDefault(); el.focus(); });
+                    li.append(link); list.append(li);
                 }
             });
-
-            if (firstInvalid) {
-                firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
-                firstInvalid.focus();
-            }
-
-            // Attach live clear-on-change after first validation run
-            if (!form._liveValidationAttached) {
-                form._liveValidationAttached = true;
-                required.forEach(({ el }) => {
-                    if (!el) return;
-                    el.addEventListener(el.tagName === "SELECT" ? "change" : "input", () => clearError(el));
-                });
-            }
-
+            summary.hidden = !list.children.length;
+            return summary.hidden;
+        }
+        function validateForm() {
+            attempted = true;
+            const valid = updateErrors();
+            if (!valid) summary.focus();
             return valid;
         }
+        controls.forEach(el => el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => {
+            if (attempted) updateErrors();
+        }));
+        // Preserve server-returned messages on the initial render.
+        controls.forEach(el => {
+            const message = document.getElementById('error-' + el.name).textContent.trim();
+            if (!message) return;
+            el.setAttribute('aria-invalid', 'true');
+            el.classList.add('is-invalid');
+            const li = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = '#' + el.id;
+            link.textContent = message;
+            link.addEventListener('click', event => { event.preventDefault(); el.focus(); });
+            li.append(link); summary.querySelector('ul').append(li);
+            summary.hidden = false;
+        });
+        if (!summary.hidden) summary.focus();
 
         form.addEventListener("submit", function (e) {
             e.preventDefault();

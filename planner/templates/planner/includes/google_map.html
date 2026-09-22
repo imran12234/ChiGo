@@ -1,0 +1,11 @@
+{% load static %}
+<div id="map" class="w-100 rounded" style="height: 500px;" aria-label="Itinerary map" hidden></div>
+<p id="map-status" class="p-3 text-muted" role="status">
+  Map unavailable. <a href="https://www.google.com/maps/search/?api=1&amp;query=Chicago" target="_blank" rel="noopener">View Chicago on Google Maps</a>.
+</p>
+{% if google_maps_browser_key %}
+{{ map_activities|json_script:"itineraryCoords" }}
+{{ google_maps_map_id|json_script:"google-map-id" }}
+<script src="{% static 'js/itinerary-map.js' %}"></script>
+<script async src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_browser_key|urlencode }}&amp;loading=async&amp;libraries=marker&amp;callback=initItineraryMap&amp;v=weekly" onerror="showMapUnavailable()"></script>
+{% endif %}

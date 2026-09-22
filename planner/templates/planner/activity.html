@@ -1,119 +1,19 @@
 {% extends "planner/base.html" %}
-{% block title %}Activity Builder{% endblock %}
-
+{% block title %}Your Chicago itinerary{% endblock %}
+{% block nav_activity %}aria-current="page"{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<div class="container-fluid mt-4">
-  <div class="row">
-    <div class="col-lg-6 mb-4">
-      <div class="border rounded p-3 h-100">
-        <h5 class="mb-3">Map View</h5>
-        <div id="map" class="w-100" style="height: 700px;"></div>
-        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-        {{ activities|json_script:"itineraryCoords" }}
-        <script>
-          const map = L.map('map').setView([41.8781, -87.6298], 13);
-        
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-          }).addTo(map);
-        
-          const itineraryActivities = JSON.parse( // gets the activities from the script tag right above <script>
-            document.getElementById('itineraryCoords').textContent
-          );
-        
-          const coords = [];
-
-          itineraryActivities.forEach(activity => {
-            const lat = parseFloat(activity.latitude);
-            const lng = parseFloat(activity.longitude);
-            if (lat === 0 && lng === 0) return; // skip activities with no real coordinates
-            coords.push([lat, lng]);
-
-            L.marker([lat, lng]) // markers for each location on the map
-              .addTo(map)
-              .bindPopup(`<strong>${activity.place}</strong><br>${activity.description}`); // gives the markers a name and description
-          });
-
-          if (coords.length >= 2) { // line that connects the different coordinates
-            L.polyline(coords, {
-              color: 'blue',
-              weight: 4,
-              opacity: 0.7
-            }).addTo(map);
-          }
-
-          if (coords.length > 0) { // scales the map to fit the coordinates
-            map.fitBounds(coords);
-          }
-        </script>
-      </div>
-    </div>
-
-    <div class="col-lg-6">
-      <h3 class="fw-bold mb-4">Your Itinerary</h3>
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h5 class="fw-bold mb-0">Pick Today’s Adventures</h5>
-        <a href="/summary" class="btn btn-primary">Finalize Itinerary</a>
-      </div>
-      <h5 class="text-center mt-3">Day {{ day }} of {{ total_days }}</h5>
-
-      <hr class="my-5">
-      
-      <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
-        {% if day > 1 %}
-          <a href="?day={{ day|add:"-1" }}" class="btn btn-outline-secondary">
-            ← Previous Day
-          </a>
-        {% else %}
-          <span></span>
-        {% endif %}
-      
-        {% if day < total_days %}
-          <a href="?day={{ day|add:"1" }}" class="btn btn-primary">
-            Next Day →
-          </a>
-        {% endif %}
-      </div>
-
-      <form method="post" id="activity-form">
-        {% csrf_token %}
-        <div class="scrollable-card-list">
-          <div class="d-flex flex-column gap-4">
-            {% for act in activities %}
-            <button type="button"
-              class="card activity-card shadow p-0 border-0 position-relative bg-white overflow-hidden"
-              data-bs-toggle="modal"
-              data-bs-target="#swapModal"
-              data-activity-id="{{ act.id }}"
-              style="all: unset; display: block; cursor: pointer;">
-
-              <div class="d-flex p-2">
-                <img src="{% url 'planner:photo_proxy' %}?photo_name={{ act.photo_name|urlencode }}"
-                    class="rounded me-3"
-                    style="width: 200px; height: 150px; object-fit: cover;"
-                    alt="Activity image">
-
-                <div class="d-flex flex-column flex-grow-1">
-                  <h5 class="mb-1">{{ act.place }}</h5>
-                  <p class="small text-muted mb-1">{{ act.description }}</p>
-                  <p class="small text-muted mb-0">Neighborhood: {{ act.neighborhood }}</p>
-                </div>
-              </div>
-
-              <div class="swap-overlay d-flex justify-content-center align-items-center">
-                <span class="fw-bold fs-3 text-white">Swap out</span>
-              </div>
-            </button>
-
-            {% endfor %}
-          </div>
-        </div>
-      </form>      
-    </div>
-  </div>
-</div>
-
+<div class="editorial-shell">
+<header class="trip-heading"><div><p class="eyebrow">THE CHICAGO EDIT · YOUR ITINERARY</p><h1>A city worth<br><em>getting to know.</em></h1><p class="lede">{{ total_days }} days of discovery. Make each stop your own.</p></div><a href="/summary" class="btn btn-primary">Finalize itinerary ↗</a></header>
+<div class="trip-layout"><section class="itinerary-column" aria-label="Daily activities">
+<div class="day-heading"><div><span class="eyebrow">YOUR DAILY CHAPTER</span><h2>Day {{ day }} <span>/ {{ total_days }}</span></h2></div><div class="day-controls">{% if day > 1 %}<a class="btn btn-outline-secondary" href="?day={{ day|add:"-1" }}" aria-label="Previous day">←</a>{% endif %}{% if day < total_days %}<a class="btn btn-outline-secondary" href="?day={{ day|add:"1" }}">Next day →</a>{% endif %}</div></div>
+<p class="hint">{{ activities|length }} stops · Select a stop to explore alternatives</p>
+<form method="post" id="activity-form">{% csrf_token %}<div class="stop-list">
+{% for act in activities %}<button type="button" class="activity-card travel-stop" data-bs-toggle="modal" data-bs-target="#swapModal" data-activity-id="{{ act.id }}">
+<div class="stop-photo">{% if act.photo_name %}<img src="{% url 'planner:photo_proxy' %}?photo_name={{ act.photo_name|urlencode }}" alt="{{ act.place }}" onerror="this.hidden=true;this.nextElementSibling.hidden=false;">{% endif %}<div class="photo-placeholder" {% if act.photo_name %}hidden{% endif %}>CHICAGO<br><small>Photo unavailable</small></div><span class="stop-number">{{ forloop.counter|stringformat:"02d" }}</span></div>
+<div class="stop-copy"><span class="eyebrow">{{ act.neighborhood }}</span><h3>{{ act.place }}</h3><p>{{ act.description }}</p><span class="swap-link">Explore alternatives ↗</span></div></button>{% endfor %}
+</div></form></section>
+<aside class="route-panel"><div class="route-title"><div><span class="eyebrow">A SENSE OF PLACE</span><h2>Your day, mapped.</h2></div><span class="day-pill">DAY {{ day }}</span></div>{% include "planner/includes/google_map.html" with map_activities=activities %}<div class="map-caption"><span>CHICAGO, ILLINOIS</span><span>41.88° N · 87.63° W</span></div><p class="map-note">Leave room for a little wandering.</p></aside>
+</div></div>
 <div class="modal fade" id="swapModal" tabindex="-1" aria-labelledby="swapModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -195,42 +95,7 @@
 
 </script>
 
-<style>
-  .activity-card {
-    border: 1px solid transparent;
-    transition: background-color 0.2s ease;
-  }
 
-  .activity-card .swap-overlay {
-    position: absolute;
-    inset: 0;
-    background-color: rgba(108, 117, 125, 0.5);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    pointer-events: none; /* so clicks still go to the button */
-  }
-
-  .activity-card:hover .swap-overlay {
-    opacity: 1;
-  }
-
-  .btn {
-  min-width: 120px;
-  }
-
-  .scrollable-card-list {
-    max-height: 500px;
-    overflow-y: auto;
-    padding-right: 8px;
-    margin-top: 1rem;
-  }
-
-  #map {
-      height: 600px;
-      width: 100%;
-  }
-
-</style>
 
 
 

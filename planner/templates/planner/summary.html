@@ -2,7 +2,6 @@
 {% block title %}Itinerary Summary{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <section class="chigo-hero text-center">
   {% if no_itinerary %}
     <h1>Itinerary Unavailable</h1>
@@ -37,56 +36,8 @@
 
     <!-- Map -->
     <div class="col-lg-6">
-      <div class="ratio ratio-4x3 bg-light rounded chigo-card d-flex align-items-center justify-content-center">
-        <div id="map" class="w-100" style="height: 500px;"></div>
-        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-        {{ activities_for_coords|json_script:"itineraryCoords" }}
-        <script>
-          const map = L.map('map').setView([41.8781, -87.6298], 13);
-        
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-          }).addTo(map);
-        
-          const itineraryActivities = JSON.parse(
-            document.getElementById('itineraryCoords').textContent
-          );
-        
-          const coordsByDay = {};
-        
-          itineraryActivities.forEach(activity => { // group it
-            const day = activity.day;
-            const lat = parseFloat(activity.latitude);
-            const lng = parseFloat(activity.longitude);
-        
-            if (!coordsByDay[day]) {
-              coordsByDay[day] = [];
-            }
-        
-            coordsByDay[day].push([lat, lng]);
-        
-            L.marker([lat, lng])
-              .addTo(map)
-              .bindPopup(`<strong>${activity.place}</strong><br>${activity.description}`);
-          });
-        
-          Object.values(coordsByDay).forEach(coords => {
-            if (coords.length >= 2) {
-              L.polyline(coords, {
-                color: 'blue',
-                weight: 4,
-                opacity: 0.7
-              }).addTo(map);
-            }
-          });
-        
-          const allCoords = itineraryActivities
-            .map(a => [parseFloat(a.latitude), parseFloat(a.longitude)])
-            .filter(([lat, lng]) => !(lat === 0 && lng === 0));
-          if (allCoords.length > 0) {
-            map.fitBounds(allCoords);
-          }
-        </script>
+      <div class="bg-light rounded chigo-card">
+        {% include "planner/includes/google_map.html" with map_activities=activities_for_coords %}
       </div>
     </div>
 
@@ -113,10 +64,11 @@
           <div class="collapse" id="activity-details-{{ forloop.counter }}">
             <div class="card-body">
               {% if activity.photo_name %}
-              <img src="{% url 'planner:photo_proxy' %}?photo_name={{ activity.photo_name|urlencode }}" class="img-fluid rounded mb-3" alt="Image for {{ activity.activity_name }}">
-              {% else %}
-              <img src="https://via.placeholder.com/450x250.png?text={{ activity.activity_name|urlencode }}" class="img-fluid rounded mb-3" alt="Placeholder image for {{ activity.activity_name }}">
+              <img src="{% url 'planner:photo_proxy' %}?photo_name={{ activity.photo_name|urlencode }}"
+                   class="img-fluid rounded mb-3" alt="{{ activity.activity_name }}" loading="lazy"
+                   onerror="this.hidden=true; this.nextElementSibling.hidden=false;">
               {% endif %}
+              <div class="bg-light rounded p-3 mb-3 text-muted" {% if activity.photo_name %}hidden{% endif %}>Photo unavailable</div>
 
               <p class="card-text"><strong>Description:</strong> {{ activity.activity_description|default:"No description available." }}</p>
               <p class="card-text"><strong>Address:</strong> {{ activity.address|default:"No address provided." }}</p>

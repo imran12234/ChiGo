@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 
-  <meta charset="UTF-8">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ChiGo – {% block title %}{% endblock %}</title>
 
 <link rel="stylesheet"
@@ -10,76 +10,30 @@
 
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet" integrity="sha384-9ndCy…" crossorigin="anonymous">
+        rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
   <!-- Custom -->
   {% load static %}
   <link rel="stylesheet" href="{% static 'css/chigo.css' %}">
   {% block head %}{% endblock %}
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="with-travel-rail d-flex flex-column min-vh-100">
 
-  <!-- Navbar -->
-  <nav class="navbar navbar-light bg-white border-bottom shadow-sm">
-    <div class="container-fluid px-4 py-2 d-flex align-items-center">
-
-      <!-- Left: Logo + Brand -->
-      <div class="d-flex align-items-center gap-2 me-4">
-        <img src="{% static 'img/chigologo.jpg' %}" alt="ChiGo Logo" style="height: 32px; width: auto;">
-        <a class="navbar-brand fw-bold mb-0" href="{% url 'planner:dashboard' %}" style="font-size: 1.3rem;">ChiGo</a>
-      </div>
-
-      <!-- Center: Nav links -->
-      <div class="d-none d-md-flex gap-1 align-items-center">
-        <a href="{% url 'planner:dashboard' %}" class="btn btn-sm btn-light text-secondary fw-medium">Dashboard</a>
-        <a href="{% url 'planner:summary' %}" class="btn btn-sm btn-light text-secondary fw-medium">Summary</a>
-        <a href="{% url 'planner:favorites' %}" class="btn btn-sm btn-light text-secondary fw-medium">Favorites</a>
-      </div>
-
-      <!-- Right: Actions -->
-      <div class="ms-auto d-flex gap-2 align-items-center">
-        <a href="{% url 'planner:survey' %}" class="btn btn-primary btn-sm fw-semibold">+ New Itinerary</a>
-        {% if user.is_authenticated %}
-          <div class="dropdown">
-            <button class="btn btn-sm btn-light dropdown-toggle d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-person-circle"></i>
-              <span class="d-none d-md-inline">{{ user.username }}</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li class="dropdown-item-text py-2">
-                <div class="fw-semibold">{{ user.username }}</div>
-                <div class="text-muted small">{{ user.email }}</div>
-              </li>
-              <li><hr class="dropdown-divider my-1"></li>
-              <li><a class="dropdown-item text-danger" href="{% url 'planner:logout' %}">Logout</a></li>
-            </ul>
-          </div>
-        {% else %}
-          <a href="{% url 'planner:login' %}" class="btn btn-outline-primary btn-sm">Login</a>
-        {% endif %}
-      </div>
-
+  <header class="mobile-topbar d-lg-none"><a class="rail-brand" href="{% url 'planner:dashboard' %}"><span aria-hidden="true">✳</span> ChiGo</a><button class="rail-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNav" aria-controls="offcanvasNav" aria-label="Open navigation"><i class="bi bi-list" aria-hidden="true"></i><span>Menu</span></button></header>
+  <aside class="offcanvas-lg offcanvas-start travel-rail" tabindex="-1" id="offcanvasNav" aria-labelledby="rail-title">
+    <div class="rail-header"><a class="rail-brand" href="{% url 'planner:dashboard' %}" id="rail-title"><span aria-hidden="true">✳</span> ChiGo</a><button type="button" class="rail-close d-lg-none" data-bs-dismiss="offcanvas" data-bs-target="#offcanvasNav" aria-label="Close navigation"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
+    <div class="offcanvas-body rail-body"><p class="rail-tagline">Your city. Your kind of day.</p>
+    <a href="{% url 'planner:survey' %}" class="rail-plan" {% block nav_survey %}{% if request.resolver_match.url_name == 'survey' %}aria-current="page"{% endif %}{% endblock %}><i class="bi bi-plus-lg" aria-hidden="true"></i>Plan a trip<span aria-hidden="true">↗</span></a>
+    <nav aria-label="Main navigation"><p class="rail-label">YOUR TRAVEL NOTEBOOK</p><ul class="rail-links">
+<li><a href="{% url 'planner:dashboard' %}" {% block nav_dashboard %}{% if request.resolver_match.url_name == 'dashboard' %}aria-current="page"{% endif %}{% endblock %}><i class="bi bi-grid" aria-hidden="true"></i><span>Overview</span><span class="rail-current" aria-hidden="true"></span></a></li>
+<li><a href="{% url 'planner:activity' %}" {% block nav_activity %}{% if request.resolver_match.url_name == 'activity' %}aria-current="page"{% endif %}{% endblock %}><i class="bi bi-map" aria-hidden="true"></i><span>Your itinerary</span><span class="rail-current" aria-hidden="true"></span></a></li>
+<li><a href="{% url 'planner:summary' %}" {% block nav_summary %}{% if request.resolver_match.url_name == 'summary' %}aria-current="page"{% endif %}{% endblock %}><i class="bi bi-journal-text" aria-hidden="true"></i><span>Trip summary</span><span class="rail-current" aria-hidden="true"></span></a></li>
+<li><a href="{% url 'planner:favorites' %}" {% block nav_favorites %}{% if request.resolver_match.url_name == 'favorites' %}aria-current="page"{% endif %}{% endblock %}><i class="bi bi-heart" aria-hidden="true"></i><span>Favorites</span><span class="rail-current" aria-hidden="true"></span></a></li>
+</ul></nav>
+    <div class="rail-city"><span class="rail-city-icon" aria-hidden="true"><i class="bi bi-buildings"></i></span><div><span class="rail-label">MADE FOR EXPLORING</span><p>Chicago, Illinois</p></div></div>
+    <div class="rail-account">{% if user.is_authenticated %}<span class="rail-avatar" aria-hidden="true">{{ user.username|first|upper }}</span><div class="rail-account-copy"><strong>{{ user.username }}</strong><a href="{% url 'planner:logout' %}">Log out</a></div>{% else %}<span class="rail-avatar" aria-hidden="true"><i class="bi bi-person"></i></span><div class="rail-account-copy"><strong>Welcome, traveler</strong><a href="{% url 'planner:login' %}">Log in</a><span aria-hidden="true"> · </span><a href="{% url 'planner:register' %}">Sign up</a></div>{% endif %}</div>
     </div>
-  </nav>
-
-  <!-- Off‑canvas nav -->
-  <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNav">
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title">Navigate</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body">
-      <ul class="list-unstyled">
-        <li><a href="{% url 'planner:dashboard' %}" class="nav-link">Dashboard</a></li>
-        <li><a href="{% url 'planner:summary' %}" class="nav-link">Summary</a></li>
-        <li><a href="{% url 'planner:favorites' %}" class="nav-link">Favorites</a></li>
-        <li><hr></li>
-        <li><a href="{% url 'planner:survey' %}" class="nav-link fw-bold">+ New Itinerary</a></li>
-        <li><a href="{% url 'planner:register' %}" class="nav-link">Create Account</a></li>
-      </ul>
-    </div>
-  </div>
-
+  </aside>
   <!-- Main -->
   <main class="flex-grow-1">
     {% block content %}{% endblock %}
@@ -87,10 +41,10 @@
 
   <!-- Footer -->
   <footer class="py-3 text-center small">
-    &copy; {{ now|date:"Y" }} ChiGo
+    ChiGo &nbsp; / &nbsp; A little curiosity. A whole city.
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-          integrity="sha384-QF6Hod…" crossorigin="anonymous"></script>
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
