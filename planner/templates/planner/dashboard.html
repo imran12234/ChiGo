@@ -1,87 +1,18 @@
 {% extends "planner/base.html" %}
 {% load static %}
-{% block title %}Dashboard{% endblock %}
-
+{% block title %}Your travel notebook{% endblock %}
 {% block content %}
-<!-- skyline hero --------------------------------------------------------->
-<section
-  class="dashboard-hero d-flex flex-column justify-content-center align-items-center text-center">
-
-  <h1 class="display-5 fw-bold text-white">
-    Welcome, {{ user.get_username|default:"Guest" }}!
-  </h1>
-</section>
-
-<!-- action card ---------------------------------------------------------->
-<div class="dashboard-actions-wrapper">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-11 col-sm-9 col-md-6 col-lg-4">
-        <div class="dashboard-actions-card text-center p-4 shadow rounded-4 bg-white">
-          <div class="d-grid gap-3">
-            <a href="{% url 'planner:survey' %}" class="btn btn-primary btn-lg">
-              Create New Itinerary
-            </a>
-            {% if user.is_authenticated %}
-              <a href="{% url 'planner:favorites' %}"
-                 class="btn btn-outline-secondary btn-lg">
-                Favorited Itineraries
-              </a>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- pre-made trips section ---------------------------------------------------------->
-<div class="container my-5">
-  <div class="row justify-content-center">
-    <div class="col-12 col-lg-10">
-      <h2 class="text-center mb-4 fw-bold">Explore Pre-Made Trips</h2>
-      <p class="text-center text-muted mb-5">Get inspired by these curated Chicago experiences</p>
-
-      <div class="accordion" id="premadeTripsAccordion">
-        {% for trip in premade_trips %}
-        <div class="accordion-item mb-3 border-0 shadow-sm rounded-3 overflow-hidden">
-          <h3 class="accordion-header">
-            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-semibold"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#trip{{ forloop.counter }}"
-                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
-                    aria-controls="trip{{ forloop.counter }}">
-              <div class="d-flex justify-content-between align-items-center w-100 pe-3">
-                <span>{{ trip.title }}</span>
-                <span class="badge bg-primary ms-2">{{ trip.duration }}</span>
-              </div>
-            </button>
-          </h3>
-          <div id="trip{{ forloop.counter }}"
-               class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
-               data-bs-parent="#premadeTripsAccordion">
-            <div class="accordion-body">
-              <p class="text-muted mb-3">{{ trip.description }}</p>
-              <h6 class="fw-bold mb-2">Highlights:</h6>
-              <ul class="list-unstyled">
-                {% for highlight in trip.highlights %}
-                <li class="mb-2">
-                  <i class="bi bi-check-circle-fill text-success me-2"></i>{{ highlight }}
-                </li>
-                {% endfor %}
-              </ul>
-              <div class="mt-3">
-                <a href="{% url 'planner:survey' %}" class="btn btn-sm btn-outline-primary">
-                  <i class="bi bi-plus-circle me-1"></i>Create Similar Trip
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
+<div class="overview-shell">
+  <header class="overview-welcome"><p class="eyebrow">THE CHICAGO EDIT · YOUR TRAVEL NOTEBOOK</p><p class="overview-greeting">Welcome back, {{ user_display }}.</p></header>
+  <section class="overview-hero" aria-labelledby="overview-title">
+    <div class="overview-hero-copy"><p class="eyebrow">A NEW DAY, A NEW DISCOVERY</p><h1 id="overview-title">More Chicago.<br><em>More you.</em></h1><p>A neighborhood you haven’t wandered. A table worth finding. Let’s put your next Chicago story together.</p><div class="overview-actions"><a href="{% url 'planner:survey' %}" class="btn btn-primary">Plan a new trip <span aria-hidden="true">↗</span></a><a href="{% url 'planner:favorites' %}" class="overview-text-link">Your saved trips <span aria-hidden="true">→</span></a></div></div>
+    <figure class="overview-cover"><img src="{% static 'images/chicago-postcard.png' %}" alt="Illustration of Chicago’s skyline and bridges along the river" width="1024" height="1536"><figcaption>41.88° N · 87.63° W <span>ALWAYS SOMETHING TO DISCOVER</span></figcaption></figure>
+  </section>
+  <section class="overview-inspiration" aria-labelledby="inspiration-title"><header class="overview-section-heading"><div><p class="eyebrow">A FEW PLACES TO BEGIN</p><h2 id="inspiration-title">Find your kind of day.</h2></div><p>A little inspiration for your next itinerary.<br>You’ll make it your own in the trip planner.</p></header>
+    <div class="overview-trip-grid">{% for trip in premade_trips %}
+      <article class="overview-trip"><div class="overview-trip-top"><span class="overview-trip-number">0{{ forloop.counter }}</span><span class="overview-duration">{{ trip.duration }}</span></div><h3>{{ trip.title }}</h3><p class="overview-trip-description">{{ trip.description }}</p><details class="overview-highlights"><summary>Explore the highlights <span aria-hidden="true">+</span></summary><ul>{% for highlight in trip.highlights %}<li>{{ highlight }}</li>{% endfor %}</ul></details><a class="overview-trip-link" href="{% url 'planner:survey' %}">Plan your own version <span aria-hidden="true">↗</span></a></article>
+    {% endfor %}</div>
+  </section>
+  <footer class="overview-signoff"><span aria-hidden="true">✳</span><p>Your city. Your pace. Your next good story.</p></footer>
 </div>
 {% endblock %}
