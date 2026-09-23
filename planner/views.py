@@ -148,20 +148,7 @@ def landing_redirect(request):
 def survey_full_page(request):
     session_key = 'survey_data'
 
-    # ✅ Clear stale session data on GET
-    if request.method == 'GET':
-        for key in [
-            "survey_data",
-            "activity_index",
-            "activity_recommendations",
-            "restaurant_recommendations",
-            "temp_activities",
-            "current_itinerary"
-        ]:
-            request.session.pop(key, None)
-        print("[DEBUG] Cleared session data at start")
-
-    data = request.session.get(session_key, {})
+    data = {}
 
     if request.method == 'POST':
         form = FullSurveyForm(request.POST)
@@ -201,7 +188,10 @@ def survey_full_page(request):
                 "activity_index",
                 "activity_recommendations",
                 "restaurant_recommendations",
-                "temp_activities"
+                "temp_activities",
+                "current_itinerary",
+                "itinerary",
+                "recommendations"
             ]:
                 request.session.pop(key, None)
 
@@ -220,7 +210,26 @@ def activity_page(request):
     print("original_activity_id:", request.POST.get("original_activity_id", "<not found>"))
 
 
-    day = int(request.GET.get("day", 1))
+    current_itinerary = None
+    itinerary_id = request.session.get("current_itinerary")
+    if itinerary_id is not None:
+        try:
+            current_itinerary = Itinerary.objects.filter(id=itinerary_id).first()
+        except (ValueError, TypeError):
+            pass
+        if current_itinerary is None:
+            request.session.pop("current_itinerary", None)
+            request.session.pop("survey_data", None)
+
+    survey_data = request.session.get("survey_data") or {}
+    if current_itinerary is None and not survey_data.get("trip_title"):
+        messages.info(request, "Plan your stay first, then your itinerary will appear here.", extra_tags="itinerary-start")
+        return redirect("planner:survey")
+
+    try:
+        day = max(1, int(request.GET.get("day", 1)))
+    except (ValueError, TypeError):
+        day = 1
 
     if request.method == "POST" and "original_activity_id" in request.POST:
         try:
@@ -278,27 +287,24 @@ def activity_page(request):
 
 
     activity_cards = []
-    survey_data = request.session["survey_data"]
-
-    if "current_itinerary" not in request.session:
-        create_new_itinerary(request, survey_data["stay_length"]) # itinerary created, also don't need to use current_day, we'll change to pagination
+    if current_itinerary is None:
         try:
             fetch_and_store_recommendations(survey_data, request)
         except ValueError as e:
             print(f"[ERROR] Survey data validation failed: {e}")
             messages.error(request, f"Could not generate itinerary: {e}")
             return redirect("planner:survey")
-        current_itinerary = Itinerary.objects.get(id=request.session["current_itinerary"]) # get the itinerary with the id passed from other function
-        make_activity_cards((request.session["itinerary"]), current_itinerary)
-    else:
+        create_new_itinerary(request, survey_data["stay_length"])
         current_itinerary = Itinerary.objects.get(id=request.session["current_itinerary"])
+        make_activity_cards((request.session["itinerary"]), current_itinerary)
+    day = min(day, max(1, current_itinerary.total_duration))
     activity_cards = get_activities(current_itinerary, day)
 
     # print(json.dumps(recommendations, indent=4))
     # return JsonResponse(survey_data, safe=False)
     return render(request, "planner/activity.html", {
         "activities": activity_cards,
-        "recommendations": request.session["recommendations"],
+        "recommendations": request.session.get("recommendations", []),
         "day": day,
         "total_days": current_itinerary.total_duration
     })
