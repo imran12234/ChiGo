@@ -1,189 +1,27 @@
 {% extends "planner/base.html" %}
-{% block title %}Itinerary Summary{% endblock %}
-
-{% block content %}
-<section class="chigo-hero text-center">
-  {% if no_itinerary %}
-    <h1>Itinerary Unavailable</h1>
-    <p class="text-muted">Complete the survey to generate a trip.</p>
-  {% else %}
-    <h1>{{ itinerary.name }}</h1>
-    <p class="text-muted">Scroll through your schedule and print or save it for later.</p>
-  {% endif %}
-</section>
-
-<div class="container mb-4">
-  <form method="get">
-    <label for="itinerarySelect" class="form-label">Select an Itinerary</label>
-    <select name="itinerary_id" id="itinerarySelect" class="form-select" onchange="this.form.submit()">
-      <option value="">-- Choose an Itinerary --</option>
-      {% for itinerary in itineraries %}
-        <option value="{{ itinerary.id }}" {% if selected_itinerary and itinerary.id == selected_itinerary.id %}selected{% endif %}>
-          {{ itinerary.name }} 
-        </option>
-      {% endfor %}
-    </select>
-  </form>
+{% block title %}Trip summary{% endblock %}{% block nav_summary %}aria-current="page"{% endblock %}
+{% block content %}<div class="collection-shell summary-shell"><header class="collection-header"><div><p class="eyebrow">YOUR TRAVEL NOTEBOOK · TRIP SUMMARY</p><h1>{% if selected_itinerary %}{{ selected_itinerary.name }}{% else %}Your next <em>chapter.</em>{% endif %}</h1><p class="lede">{% if selected_itinerary %}{{ selected_itinerary.total_duration }} day{{ selected_itinerary.total_duration|pluralize }} in Chicago. Your plans, brought together.{% else %}Choose a saved itinerary or start a new Chicago adventure.{% endif %}</p></div>{% if selected_itinerary %}<div class="summary-actions"><button type="button" class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer" aria-hidden="true"></i> Print / PDF</button><form id="favorite-form" data-url="{% url 'planner:favorite_itinerary' selected_itinerary.id %}" data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">{% csrf_token %}<button type="button" id="favorite-button" class="btn btn-primary"><i class="bi bi-heart" aria-hidden="true"></i> Favorite</button></form></div>{% endif %}</header>
+{% if itineraries %}<form method="get" class="trip-picker"><label for="itinerarySelect">Your itineraries</label><div><select name="itinerary_id" id="itinerarySelect" class="form-select"><option value="">Choose an itinerary</option>{% for trip in itineraries %}<option value="{{ trip.id }}" {% if selected_itinerary.id == trip.id %}selected{% endif %}>{{ trip.name }}</option>{% endfor %}</select><button class="btn btn-outline-primary" type="submit">View trip</button></div></form>{% endif %}
+<p id="favorite-status" class="favorite-status" role="status" hidden></p>
+{% if selected_itinerary %}<div class="summary-layout"><section aria-label="Day-by-day itinerary">{% regroup activities by day as days %}{% for group in days %}<section class="summary-day"><div class="summary-day-title"><span class="eyebrow">YOUR DAILY CHAPTER</span><h2>Day {{ group.grouper }}</h2></div>{% for activity in group.list %}<details class="summary-stop"><summary><span class="summary-order">{{ forloop.counter|stringformat:'02d' }}</span><span><span class="eyebrow">{{ activity.category }}</span><strong>{{ activity.activity_name }}</strong><span class="summary-neighborhood">{{ activity.activity_neighborhood.name }}</span></span><i class="bi bi-chevron-down" aria-hidden="true"></i></summary><div class="summary-detail">{% if activity.photo_name %}<img src="{% url 'planner:photo_proxy' %}?photo_name={{ activity.photo_name|urlencode }}" alt="{{ activity.activity_name }}" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false;">{% endif %}<div class="photo-placeholder" {% if activity.photo_name %}hidden{% endif %}>Photo unavailable</div><p>{{ activity.activity_description|default:'No description available.' }}</p><dl><dt>Address</dt><dd>{{ activity.address|default:'No address available.' }}</dd><dt>From the previous stop</dt><dd>{% if activity.transit_time == 'Start of day' %}Start of day{% elif activity.transit_time == 'N/A' or not activity.transit_time %}Travel time unavailable{% else %}{{ activity.transit_time.walk }} min walk · {{ activity.transit_time.drive }} min drive{% endif %}</dd></dl></div></details>{% endfor %}</section>{% empty %}<div class="empty-note"><h2>No stops saved yet.</h2><a href="{% url 'planner:survey' %}">Plan a new trip</a></div>{% endfor %}</section><aside class="route-panel"><div class="route-title"><div><span class="eyebrow">A SENSE OF PLACE</span><h2>The whole adventure.</h2></div></div>{% include 'planner/includes/google_map.html' with map_activities=activities_for_coords %}<p class="map-note">A little curiosity goes a long way.</p></aside></div>
+{% else %}<section class="empty-note"><i class="bi bi-map" aria-hidden="true"></i><h2>Every good trip starts somewhere.</h2><p>Choose an itinerary above, or tell us what you love<br>and start planning your Chicago stay.</p><a href="{% url 'planner:survey' %}" class="btn btn-primary">Plan a trip ↗</a></section>{% endif %}
 </div>
-
-{% if not no_itinerary %}
-<div class="container mb-5">
-  {% if not selected_itinerary %}
-    <div class="alert alert-info">Select an itinerary.</div>
-  {% else %}
-
-  <div class="row g-4">
-
-    <!-- Map -->
-    <div class="col-lg-6">
-      <div class="bg-light rounded chigo-card">
-        {% include "planner/includes/google_map.html" with map_activities=activities_for_coords %}
-      </div>
-    </div>
-
-    <!-- Activity list -->
-    <div class="col-lg-6">
-      <div class ="itinerary-activities">
-        {% for activity in activities %}
-        <div class="card mb-3 chigo-card">
-          <div class="card-header">
-            <div class="d-flex justify-content-between align-items center">
-              <span class="h5 mb-0" style="font-size: 1.35rem;">{{ activity.activity_name }}</span>
-              <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#activity-details-{{ forloop.counter }}" aria-expanded="false" aria-controls="activity-details-{{ forloop.counter }}">
-                <i class="bi bi-chevron-down"></i> Details
-              </button>
-            </div>
-            <div class="text-body-secondary">
-              <strong>Day:</strong> {{ activity.day }}
-          </div>
-          <div class="text-body-secondary">
-              <strong>Category:</strong> {{ activity.category }}
-          </div>
-          </div>
-
-          <div class="collapse" id="activity-details-{{ forloop.counter }}">
-            <div class="card-body">
-              {% if activity.photo_name %}
-              <img src="{% url 'planner:photo_proxy' %}?photo_name={{ activity.photo_name|urlencode }}"
-                   class="img-fluid rounded mb-3" alt="{{ activity.activity_name }}" loading="lazy"
-                   onerror="this.hidden=true; this.nextElementSibling.hidden=false;">
-              {% endif %}
-              <div class="bg-light rounded p-3 mb-3 text-muted" {% if activity.photo_name %}hidden{% endif %}>Photo unavailable</div>
-
-              <p class="card-text"><strong>Description:</strong> {{ activity.activity_description|default:"No description available." }}</p>
-              <p class="card-text"><strong>Address:</strong> {{ activity.address|default:"No address provided." }}</p>
-              <p class="card-text"><strong>Neighborhood:</strong> {{ activity.activity_neighborhood.name }}</p>
-              <p class="card-text"><strong>Transit from Previous Stop:</strong>
-                {% if activity.transit_time == "Start of day" or activity.transit_time == "N/A" %}
-                  {{ activity.transit_time }}
-                {% elif activity.transit_time %}
-                  🚶 {{ activity.transit_time.walk }} min walk &nbsp;|&nbsp; 🚗 {{ activity.transit_time.drive }} min drive
-                {% else %}
-                  N/A
-                {% endif %}
-              </p>
-
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-            
-      <div class="d-flex justify-content-end align-items-center mt-3 gap-2">
-        <button class="btn btn-outline-secondary" onclick="window.print()">Print / PDF</button>
-      
-        <form id="favorite-form" data-itinerary-id="{{ selected_itinerary.id }}">
-          {% csrf_token %}
-          <button type="button" id="favorite-button" class="btn btn-success">
-            <i class="bi bi-star"></i> Favorite
-          </button>
-        </form>
-
-      <!-- Favorite Success Modal -->
-      <div class="modal fade" id="favoriteSuccessModal" tabindex="-1" aria-labelledby="favoriteSuccessModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content shadow-sm">
-            <div class="modal-header">
-              <h5 class="modal-title" id="favoriteSuccessModalLabel">Itinerary Favorited</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <a href="{% url 'planner:favorites' %}" class="btn btn-primary">Go to Favorites</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
- <!-- Non logged in Modal -->
- <div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="loginRequiredModalLabel">Login Required</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        You must be logged in to favorite an itinerary.
-      </div>
-      <div class="modal-footer">
-        <a href="{% url 'planner:login' %}" class="btn btn-outline-primary">Login</a>
-        <a href="{% url 'planner:register' %}" class="btn btn-outline-secondary">Create Account</a>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-</div>
-
-</div>
-
-
-{{ user.is_authenticated|yesno:"true,false"|json_script:"user-auth-status" }}
-
+<div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h2 class="modal-title" id="loginRequiredModalLabel">Keep this one for later.</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><p>Log in to add this itinerary to your favorites.</p></div><div class="modal-footer"><a href="{% url 'planner:login' %}" class="btn btn-primary">Log in</a><a href="{% url 'planner:register' %}" class="btn btn-outline-primary">Create an account</a></div></div></div></div>
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const userIsAuthenticated = JSON.parse(
-      document.getElementById("user-auth-status").textContent
-    );
-    const favoriteButton = document.getElementById('favorite-button');
-    const favoriteForm = document.getElementById('favorite-form');
-
-    favoriteButton.addEventListener('click', function () {
-      if (!userIsAuthenticated) {
-        const loginModal = new bootstrap.Modal(document.getElementById('loginRequiredModal'));
-        loginModal.show();
-        return;
-      }
-
-      const itineraryId = favoriteForm.getAttribute('data-itinerary-id');
-      const csrfToken = favoriteForm.querySelector('[name=csrfmiddlewaretoken]').value;
-
-      fetch(`/favorite_itinerary/${itineraryId}/`, {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': csrfToken,
-          'Accept': 'application/json',
-        },
-      })
-      .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              const favoriteModal = new bootstrap.Modal(document.getElementById('favoriteSuccessModal'));
-              favoriteModal.show();
-            } else {
-              alert('Failed to favorite itinerary.');
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred.');
-          });
-        });
-      });
-    </script>
-
-      
-      
-      
-{% endif %}
-{% endblock %}
+document.addEventListener('DOMContentLoaded', () => {
+ const button=document.getElementById('favorite-button');
+ if(!button) return;
+ const form=document.getElementById('favorite-form');
+ const status=document.getElementById('favorite-status');
+ button.addEventListener('click',async()=>{
+  if(form.dataset.authenticated!=='true'){bootstrap.Modal.getOrCreateInstance(document.getElementById('loginRequiredModal')).show();return;}
+  button.disabled=true;status.hidden=false;status.textContent='Saving to favorites…';
+  try {
+   const response=await fetch(form.dataset.url,{method:'POST',headers:{'X-CSRFToken':form.querySelector('[name=csrfmiddlewaretoken]').value,'Accept':'application/json'}});
+   if(!response.ok) throw new Error('Save failed');
+   const data=await response.json();if(!data.success) throw new Error('Save failed');
+   status.textContent='Saved to your favorites. ';const link=document.createElement('a');link.href="{% url 'planner:favorites' %}";link.textContent='View favorites';status.append(link);button.textContent='Favorited';
+  }catch(error){status.textContent='We couldn’t save this itinerary. Please try again.';}finally{button.disabled=false;}
+ });
+});
+</script>{% endblock %}
