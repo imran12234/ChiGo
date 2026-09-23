@@ -1,4 +1,5 @@
 {% extends "planner/base.html" %}
+{% load static %}
 {% block title %}Plan your Chicago stay{% endblock %}
 {% block nav_survey %}aria-current="page"{% endblock %}
 {% block content %}
@@ -63,39 +64,23 @@
                     </label>
                     <textarea class="form-control flex-grow-1" id="id_dislikes" name="dislikes" placeholder="e.g., long walks, spicy food, crowded places" style="min-height: 80px;">{{ form.dislikes.value|default:'' }}</textarea>
                     {% if form.dislikes.errors %}<div class="text-danger small">{{ form.dislikes.errors.0 }}</div>{% endif %}</div><div class="survey-submit"><p>Your preferences, brought together<br>in one personal Chicago itinerary.</p><button type="submit" class="btn btn-primary">Create my itinerary <span aria-hidden="true">↗</span></button></div></div></form></div>
-<!-- Loading Overlay -->
-<div id="loading-screen" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(255,255,255,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; font-size: 2.5rem;">
-    <div class="emoji-bounce" id="emoji-click-area">🌆 <span id="middle-emoji">🍽️</span> ⏳</div>
-    <div role="status" aria-live="polite" id="loading-text" style="font-size: 1.25rem; margin-top: 1rem;">Planning your perfect trip...</div>
-</div>
-
-<style>
-    .emoji-bounce {
-        display: flex;
-        gap: 1.5rem;
-        animation: bounce 1.2s infinite;
-        user-select: none;
-    }
-
-    @keyframes bounce {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-20px); }
-    }
-</style>
-
+<dialog id="loading-screen" class="trip-loading" aria-labelledby="loading-title" aria-describedby="loading-text">
+    <header class="loading-masthead"><span class="loading-brand"><span aria-hidden="true">✳</span> ChiGo</span><span class="eyebrow">THE CHICAGO EDIT</span></header>
+    <div class="loading-layout">
+        <figure class="loading-postcard" aria-hidden="true">
+            <div class="loading-art"><img src="{% static 'images/chicago-postcard.png' %}" alt="" width="1024" height="1536">
+                <svg class="loading-route" viewBox="0 0 400 600" fill="none"><path class="route-line" d="M90 180C160 180 140 290 240 300S240 410 310 455"/><circle cx="90" cy="180" r="8"/><circle cx="240" cy="300" r="8"/><circle cx="310" cy="455" r="8"/></svg>
+            </div><figcaption><span>CHICAGO, ILLINOIS</span><span>YOUR NEXT CHAPTER</span></figcaption>
+        </figure>
+        <section class="loading-copy"><p class="eyebrow">A LITTLE LOCAL INSPIRATION</p><h2 id="loading-title" tabindex="-1">Your kind of Chicago,<br><em>coming together.</em></h2><p class="loading-intro">We’re putting your days together around the things you love.</p>
+            <div id="loading-preferences" class="loading-preferences" aria-label="Your preferences"></div>
+            <div class="loading-status"><span class="loading-spinner" aria-hidden="true"></span><div><p id="loading-text" role="status" aria-live="polite">Creating your itinerary…</p><p class="loading-reassurance">Keep this page open. Your itinerary will appear when it’s ready.</p></div></div>
+            <aside class="loading-tip"><p class="eyebrow">WHILE YOU WAIT</p><p id="loading-tip-text">Leave a little room for a riverside wander.</p></aside>
+        </section>
+    </div>
+</dialog>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const cuisineEmojiMap = {
-            "Mexican": "🌮", "Japanese": "🍣", "Italian": "🍝",
-            "Indian": "🍛", "Chinese": "🥡", "American": "🍔",
-            "Thai": "🥢", "French": "🥐", "Mediterranean": "🥙",
-            "Korean": "🍲", "Greek": "🥗"
-        };
-        const activityEmojiMap = { "Low": "🧘", "Moderate": "🚶", "High": "🏃" };
-        const socialEmojiMap = {
-            "Solo": "🧍", "Family": "👨‍👩‍👧‍👦", "Friends": "🧑‍🤝‍🧑", "Work": "👥"
-        };
-
         const welcomeAction = document.querySelector('.trip-welcome-action');
         if (welcomeAction) welcomeAction.addEventListener('click', event => {
             event.preventDefault();
@@ -107,7 +92,7 @@
 
         const form = document.getElementById("survey-form");
         const loadingScreen = document.getElementById("loading-screen");
-        const middleEmoji = document.getElementById("middle-emoji");
+
         const loadingText = document.getElementById("loading-text");
 
         // Block e/E/+/- in number inputs (browsers allow them for scientific notation)
@@ -178,43 +163,55 @@
         });
         if (!summary.hidden) summary.focus();
 
+        let submitting = false;
+        let tipTimer;
+        let slowTimer;
+        const tips = [
+            'Leave a little room for a riverside wander.',
+            'A good city day leaves time for an unexpected stop.',
+            'Comfortable shoes make room for one more discovery.',
+            'Pause between stops. Sometimes the view is the plan.'
+        ];
+        function resetLoading() {
+            clearInterval(tipTimer);
+            clearTimeout(slowTimer);
+            if (loadingScreen.open) loadingScreen.close();
+            submitting = false;
+            form.querySelector('[type="submit"]').disabled = false;
+            form.removeAttribute('aria-busy');
+        }
+        window.addEventListener('pageshow', resetLoading);
+        loadingScreen.addEventListener('cancel', event => event.preventDefault());
         form.addEventListener("submit", function (e) {
             e.preventDefault();
-
-            if (!validateForm()) return;
-
-            // Pull values
-            const cuisine = document.querySelector('[name="{{ form.preferred_cuisine.name }}"]')?.selectedOptions[0]?.text.trim();
-            const activity = document.querySelector('[name="{{ form.activity_level.name }}"]')?.selectedOptions[0]?.text.trim();
-            const social = document.querySelector('[name="{{ form.social_context.name }}"]')?.selectedOptions[0]?.text.trim();
-            const budget = document.querySelector('[name="{{ form.budget.name }}"]')?.value;
-
-            // Create emoji loop
-            const emojiList = [
-                cuisineEmojiMap[cuisine] || "🍽️",
-                activityEmojiMap[activity] || "🎯",
-                socialEmojiMap[social] || "🧑‍🤝‍🧑",
-                (budget && parseInt(budget) < 1000) ? "💸" : "💰"
-            ];
-
-            middleEmoji.textContent = emojiList[0];
-            loadingScreen.style.display = "flex";
-
-            let index = 1;
-            const emojiInterval = setInterval(() => {
-                middleEmoji.textContent = emojiList[index % emojiList.length];
-                index++;
-            }, 3000);
-
-            setTimeout(() => {
-                loadingText.textContent = "Still working... high-quality plans take time 🧠✨";
-            }, 10000);
-
-            // Delay submit slightly to keep user engaged
-            setTimeout(() => {
-                clearInterval(emojiInterval);
-                form.submit();
-            }, 40000); // adjust this to match backend generation time
+            if (submitting || !validateForm()) return;
+            submitting = true;
+            const days = form.elements.stay_length.value;
+            const cuisine = form.elements.preferred_cuisine.selectedOptions[0].textContent.trim();
+            const activity = form.elements.activity_level.selectedOptions[0].textContent.trim();
+            const chips = document.getElementById('loading-preferences');
+            chips.replaceChildren();
+            [days + (Number(days) === 1 ? ' day' : ' days'), cuisine, activity + ' activity'].forEach(value => {
+                const chip = document.createElement('span');
+                chip.textContent = value;
+                chips.append(chip);
+            });
+            form.querySelector('[type="submit"]').disabled = true;
+            form.setAttribute('aria-busy', 'true');
+            loadingText.textContent = 'Creating your itinerary…';
+            loadingScreen.showModal();
+            document.getElementById('loading-title').focus();
+            let tipIndex = 0;
+            document.getElementById('loading-tip-text').textContent = tips[tipIndex];
+            tipTimer = setInterval(() => {
+                tipIndex = (tipIndex + 1) % tips.length;
+                document.getElementById('loading-tip-text').textContent = tips[tipIndex];
+            }, 8000);
+            slowTimer = setTimeout(() => {
+                loadingText.textContent = 'Still working on your itinerary…';
+            }, 20000);
+            // Submit immediately; the overlay remains visible during the request.
+            HTMLFormElement.prototype.submit.call(form);
         });
     });
 </script>
