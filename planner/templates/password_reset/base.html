@@ -1,0 +1,18 @@
+{% extends "planner/base.html" %}{% load static %}
+{% block title %}{% block reset_title %}Account recovery{% endblock %}{% endblock %}
+{% block content %}
+<div class="account-layout">
+  <aside class="account-story">
+    <p class="eyebrow">THE CHICAGO EDIT</p>
+    <h1>Your next chapter<br><em>is still waiting.</em></h1>
+    <p>A fresh start for your account.<br>Then, back to exploring Chicago.</p>
+    <img src="{% static 'images/chicago-skyline.jpg' %}" alt="Chicago skyline" class="account-city">
+    <span class="eyebrow account-caption">CHICAGO, ILLINOIS · PICK UP WHERE YOU LEFT OFF</span>
+  </aside>
+  <section class="account-panel" aria-labelledby="reset-title">
+    <p class="eyebrow">ACCOUNT RECOVERY</p>
+    {% block reset_content %}{% endblock %}
+    <div class="account-links"><a href="{% url 'planner:login' %}">← Back to log in</a><a href="{% url 'planner:survey' %}">Keep exploring</a></div>
+  </section>
+</div>
+{% endblock %}

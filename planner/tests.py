@@ -71,3 +71,35 @@ class GoogleMapRenderingTests(SimpleTestCase):
         }], 'day': 1, 'total_days': 1})
         self.assertNotIn('photo-proxy/?photo_name=', html)
         self.assertIn('Photo unavailable', html)
+
+
+class PasswordResetPresentationTests(SimpleTestCase):
+    def test_invalid_reset_link_offers_recovery_without_password_form(self):
+        html = render_to_string('password_reset/confirm.html', {'validlink': False})
+        self.assertIn('Request a new link', html)
+        self.assertNotIn('type="password"', html)
+
+    def test_new_password_fields_do_not_echo_values(self):
+        from django.contrib.auth.forms import SetPasswordForm
+        from django.contrib.auth.models import User
+        form = SetPasswordForm(User(username='preview'), initial={
+            'new_password1': 'do-not-render-password',
+            'new_password2': 'do-not-render-password',
+        })
+        html = render_to_string('password_reset/confirm.html', {
+            'validlink': True, 'form': form, 'csrf_token': 'test-only',
+        })
+        self.assertNotIn('do-not-render-password', html)
+        self.assertEqual(html.count('autocomplete="new-password"'), 2)
+        self.assertIn('Save new password', html)
+
+    def test_email_error_is_linked_to_its_field(self):
+        from django.contrib.auth.forms import PasswordResetForm
+        form = PasswordResetForm({'email': 'invalid'})
+        html = render_to_string('password_reset/form.html', {
+            'form': form, 'csrf_token': 'test-only',
+        })
+        self.assertIn('aria-invalid="true"', html)
+        self.assertIn('aria-describedby="email-error"', html)
+        self.assertIn('Enter a valid email address.', html)
+        self.assertIn('Send reset link', html)
