@@ -1713,6 +1713,16 @@
             }
         },
         {
+            "Logan Square": {
+                "location": {
+                    "latitude": "41.9230",
+                    "longitude": "-87.7090"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
             "River East": {
                 "location": {
                     "latitude": "41.8905",

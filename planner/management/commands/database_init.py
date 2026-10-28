@@ -22,6 +22,7 @@ class Command(BaseCommand):
         Neighborhood.objects.get_or_create(name="Andersonville")
         Neighborhood.objects.get_or_create(name="Magnificent Mile")
         Neighborhood.objects.get_or_create(name="Wicker Park")
+        Neighborhood.objects.get_or_create(name="Logan Square")
         Neighborhood.objects.get_or_create(name="Chinatown")
 
         ActivityLevel.objects.get_or_create(name="Low")
