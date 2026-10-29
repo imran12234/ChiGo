@@ -2324,6 +2324,146 @@
                     }
                 ]
             }
+        },
+        {
+            "Avondale": {
+                "location": {
+                    "latitude": "41.939347",
+                    "longitude": "-87.70266"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
+            "Bridgeport": {
+                "location": {
+                    "latitude": "41.836416",
+                    "longitude": "-87.648661"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
+            "Bronzeville": {
+                "location": {
+                    "latitude": "41.816644",
+                    "longitude": "-87.616774"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
+            "Bucktown": {
+                "location": {
+                    "latitude": "41.922707",
+                    "longitude": "-87.680275"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
+            "Edgewater": {
+                "location": {
+                    "latitude": "41.983685",
+                    "longitude": "-87.660114"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
+            "Greektown": {
+                "location": {
+                    "latitude": "41.878564",
+                    "longitude": "-87.64705"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
+            "Humboldt Park": {
+                "location": {
+                    "latitude": "41.899075",
+                    "longitude": "-87.721293"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
+            "Hyde Park": {
+                "location": {
+                    "latitude": "41.794763",
+                    "longitude": "-87.591667"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
+            "Lincoln Square": {
+                "location": {
+                    "latitude": "41.968682",
+                    "longitude": "-87.688965"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
+            "Little Italy": {
+                "location": {
+                    "latitude": "41.86954",
+                    "longitude": "-87.651133"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
+            "Pilsen": {
+                "location": {
+                    "latitude": "41.852333",
+                    "longitude": "-87.666016"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
+            "Ravenswood": {
+                "location": {
+                    "latitude": "41.968807",
+                    "longitude": "-87.679171"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
+            "Rogers Park": {
+                "location": {
+                    "latitude": "42.012629",
+                    "longitude": "-87.674588"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
+        },
+        {
+            "Streeterville": {
+                "location": {
+                    "latitude": "41.892736",
+                    "longitude": "-87.620042"
+                },
+                "restaurants": [],
+                "attractions": []
+            }
         }
     ]
 }

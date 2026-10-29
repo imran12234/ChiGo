@@ -21,11 +21,7 @@
                         <div class="field-error" id="error-trip_title">{{ form.trip_title.errors.0|default:'' }}</div></div><div class="preference-field"><label class="form-label fw-semibold mb-1" for="id_stay_length">Number of days</label><p class="field-hint" id="hint-stay_length">Include your arrival and departure days.</p>
                         <input type="number" class="form-control" id="id_stay_length" aria-describedby="hint-stay_length error-stay_length" aria-required="true" name="stay_length" min="1" step="1" inputmode="numeric" placeholder="3" value="{{ form.stay_length.value|default:'' }}">
                         <div class="field-error" id="error-stay_length">{{ form.stay_length.errors.0|default:'' }}</div></div><div class="preference-field"><label class="form-label fw-semibold mb-1" for="id_stay_location">Where are you staying?</label><p class="field-hint" id="hint-stay_location">Choose your Chicago neighborhood.</p>
-                        <select class="form-select" id="id_stay_location" aria-describedby="hint-stay_location error-stay_location" aria-required="true" name="stay_location">
-                            {% for choice in form.stay_location.field.choices %}
-                            <option value="{{ choice.0 }}" {% if form.stay_location.value == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
-                            {% endfor %}
-                        </select>
+                        {{ form.stay_location }}
                         <div class="field-error" id="error-stay_location">{{ form.stay_location.errors.0|default:'' }}</div></div></div></fieldset><fieldset class="preference-card"><legend><span class="section-number" aria-hidden="true">02</span><span>Your interests</span></legend><p class="card-description">The food, company, and energy you enjoy.</p><div class="preference-fields"><div class="preference-field"><label class="form-label fw-semibold mb-1" for="id_preferred_cuisine">Preferred cuisine</label><p class="field-hint" id="hint-preferred_cuisine">Choose one cuisine you’d like to explore.</p>
                         <select class="form-select" id="id_preferred_cuisine" aria-describedby="hint-preferred_cuisine error-preferred_cuisine" aria-required="true" name="preferred_cuisine">
                             {% for choice in form.preferred_cuisine.field.choices %}

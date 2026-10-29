@@ -126,3 +126,45 @@ Chinatown
   - Chiu Quon Bakery
 - Attractions:
   - Ping Tom Park
+Avondale
+- Restaurants/Bars: None listed
+- Attractions: None listed
+Bridgeport
+- Restaurants/Bars: None listed
+- Attractions: None listed
+Bronzeville
+- Restaurants/Bars: None listed
+- Attractions: None listed
+Bucktown
+- Restaurants/Bars: None listed
+- Attractions: None listed
+Edgewater
+- Restaurants/Bars: None listed
+- Attractions: None listed
+Greektown
+- Restaurants/Bars: None listed
+- Attractions: None listed
+Humboldt Park
+- Restaurants/Bars: None listed
+- Attractions: None listed
+Hyde Park
+- Restaurants/Bars: None listed
+- Attractions: None listed
+Lincoln Square
+- Restaurants/Bars: None listed
+- Attractions: None listed
+Little Italy
+- Restaurants/Bars: None listed
+- Attractions: None listed
+Pilsen
+- Restaurants/Bars: None listed
+- Attractions: None listed
+Ravenswood
+- Restaurants/Bars: None listed
+- Attractions: None listed
+Rogers Park
+- Restaurants/Bars: None listed
+- Attractions: None listed
+Streeterville
+- Restaurants/Bars: None listed
+- Attractions: None listed

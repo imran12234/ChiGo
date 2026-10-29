@@ -95,6 +95,33 @@ class SurveyResponseForm(forms.ModelForm):
             'dislikes'
         ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        field = self.fields["stay_location"]
+        # Curated shortcuts, not a ranking derived from usage data.
+        suggested_names = (
+            "Loop", "River North", "Streeterville", "Magnificent Mile",
+            "West Loop", "Lincoln Park", "Gold Coast", "South Loop",
+        )
+        neighborhoods = list(field.queryset.order_by("name", "pk"))
+        suggested = [
+            (place.pk, place.name)
+            for name in suggested_names
+            for place in neighborhoods if place.name == name
+        ]
+        remaining = [(place.pk, place.name) for place in neighborhoods
+                     if place.name not in suggested_names]
+        field.choices = [("", field.empty_label)]
+        if suggested:
+            field.choices += [("Suggested neighborhoods", suggested)]
+        if remaining:
+            field.choices += [("All other neighborhoods", remaining)]
+        field.widget.attrs.update({
+            "class": "form-select",
+            "aria-describedby": "hint-stay_location error-stay_location",
+            "aria-required": "true",
+        })
+
     def clean_stay_length(self):
         stay_length = self.cleaned_data.get('stay_length')
         if stay_length is None or stay_length < 1:
